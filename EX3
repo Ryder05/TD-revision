@@ -1,0 +1,174 @@
+#include <algorithm>
+#include<string>
+#include<iostream>
+#include<vector>
+using namespace std;
+class Pokemon
+{
+protected:
+	string nom;
+	float poid;
+	float intensite_energie;
+	friend class PokemonWorld;
+public:
+	Pokemon(string nom,int poid,float intensite_energie)
+	{
+		this->nom=nom;
+		this->poid=poid;
+		this->intensite_energie= intensite_energie;
+	}
+	virtual float calculer_vitesse()=0;
+	virtual void affiche()=0;
+	virtual float calculer_energie_absorb_quotid()=0;
+};
+class Terractif: public Pokemon
+{
+private:
+	float taille;
+	int nb_pattes;
+	float coef_vitalite;
+	friend class PokemonWorld;
+
+public:
+	Terractif(string nom, int poid,float intensite_energie, float taille,int nb_pattes,float coef_vitalite):Pokemon(nom,poid, intensite_energie)
+	{
+		this->taille= taille;
+		this->nb_pattes = nb_pattes;
+		this->coef_vitalite = coef_vitalite;
+	}
+	float calculer_vitesse()
+	{
+		return nb_pattes *((poid + 1) / 10) * 2 * intensite_energie;
+	}
+	float calculer_energie_absorb_quotid()
+	{
+		return taille*taille*coef_vitalite*100;
+	}
+	void affiche()
+	{
+		cout <<"je suis " << nom << " mon poids est de " << poid << "kg, ma vitesse actuelle est de" << calculer_vitesse() << " km / h, j absorbe quotidiennement une energie de " << calculer_energie_absorb_quotid() << ", j ai " << nb_pattes << " pattes, ma taille est de" << taille << "m, ma vitalité est de" << coef_vitalite << "."<<endl;
+	}
+};
+class Dormeur:public Pokemon
+{
+	float taille;
+	float nb_heures_repos ;
+	int nb_pattes;
+	friend class PokemonWorld;
+
+public:
+	float calculer_vitesse()
+	{
+		return nb_pattes *((poid + 1) / 10) * 2 * intensite_energie;
+	}
+	float calculer_energie_absorb_quotid()
+	{
+
+		return taille*taille - (nb_heures_repos * 2);
+	}
+	Dormeur(string nom, int poid, float intensite_energie, float taille, int nb_pattes, float nb_heures_repos):Pokemon(nom,poid,intensite_energie)
+	{
+		this->taille = taille;
+		this->nb_pattes = nb_pattes;
+		this->nb_heures_repos = nb_heures_repos;
+	}
+	void affiche()
+	{
+		cout << "je suis " << nom << " mon poids est de " << poid << "kg, ma vitesse actuelle est de" << calculer_vitesse() << "km / h, j absorbe quotidiennement une énergie de" << calculer_energie_absorb_quotid() << ", j ai " << nb_pattes << " pattes, ma taille  est de " << taille << "m, je dormes" << nb_heures_repos << "heures."<<endl;
+	}
+};
+class Aquatique:public Pokemon
+{
+	friend class PokemonWorld;
+	int nb_nageoires;
+public:
+	float calculer_vitesse()
+	{
+		return nb_nageoires * (poid /25) * intensite_energie;
+	}
+	float calculer_energie_absorb_quotid()
+	{
+
+		return poid/2;
+	}
+	Aquatique(string nom, int poid, float intensite_energie,int nb_nageoires) :Pokemon(nom, poid, intensite_energie)
+	{
+		this->nb_nageoires = nb_nageoires;
+		
+	}
+	void affiche()
+	{
+		cout << "Je suis " << nom << " mon poids est de " << poid << "kg, ma vitesse actuelle est de" << calculer_vitesse() << " km / h, j absorbe quotidiennement une energie de " << calculer_energie_absorb_quotid() << ", j ai " << nb_nageoires << " nageoires"<<endl; ;
+	}
+};
+class PokemonWorld
+{
+private:
+	vector <Pokemon*> v;
+public:
+	bool ajouter(Pokemon* pk)
+	{
+		for(auto x:v)
+		{
+			if(x->nom==pk->nom)
+				return false;
+		}
+		v.push_back(pk);
+		return true;
+	}
+	void supprimer()
+	{
+		v.pop_back();
+	}
+	bool supprimer(string nom)
+	{
+				Pokemon* pk;
+		for (auto x : v)
+		{
+			if (x->nom == nom)
+				pk=x;
+		}
+		std::vector<Pokemon*>::iterator position = std::find(v.begin(), v.end(), pk);
+		if (position != v.end())
+			v.erase(position);
+		else
+			return false;
+		return true;
+	}
+	float calculer_energie_absorb()
+	{
+		float somme=0.0f;
+		for(auto x:v)
+		{
+			somme+=x->calculer_energie_absorb_quotid();
+		}
+		return somme;
+	}
+	float calcul_vitesse()
+	{
+		int size=v.size();
+		float somme = 0.0f;
+		for (auto x : v)
+		{
+			somme += x->calculer_vitesse();
+		}
+		return somme/(float)size;
+	}
+};
+int main()
+{
+	Dormeur pk1("reked",200,10,2,4,11);
+	Terractif pk2("Pikachu",50,10,1.5,2,2);
+	Aquatique pk3("Huta",10,0.5,5);
+	PokemonWorld world;
+	pk1.affiche();
+	pk2.affiche();
+	pk3.affiche();
+	cout<<pk1.calculer_vitesse()<<"|" <<pk2.calculer_vitesse()<< "|"<<pk3.calculer_vitesse()<<endl;
+	world.ajouter(&pk1);
+	world.ajouter(&pk2);
+	world.ajouter(&pk3);
+	cout<<world.calcul_vitesse()<<endl;;
+	world.supprimer("Huta");
+	cout<<world.calcul_vitesse();
+}
